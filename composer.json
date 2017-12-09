@@ -1,0 +1,34 @@
+{
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^7.1.3",
+        "ramsey/uuid": "^3.7",
+        "beberlei/assert": "^2.8",
+        "prooph/common": "^4.2",
+        "prooph/event-store": "^7.3",
+        "prooph/event-sourcing": "^5.2",
+        "prooph/service-bus": "^6.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5",
+        "phpmetrics/phpmetrics": "^2.3"
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "bin-dir": "bin",
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Library\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Library\\": "tests/"
+        }
+    }
+}
