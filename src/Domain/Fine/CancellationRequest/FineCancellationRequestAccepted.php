@@ -13,15 +13,13 @@ final class FineCancellationRequestAccepted extends AggregateChanged
 
     public static function occured(LendingId $lendingId): self
     {
-        return self::occur($lendingId->toScalar(), [
-            'lendingId' => $lendingId->toScalar()
-        ]);
+        return self::occur($lendingId->toScalar());
     }
 
     public function lendingId(): LendingId
     {
         if (null === $this->lendingId) {
-            $this->lendingId = new LendingId($this->payload['lendingId']);
+            $this->lendingId = new LendingId($this->aggregateId());
         }
 
         return $this->lendingId;

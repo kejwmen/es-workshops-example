@@ -17,7 +17,6 @@ final class FineAccrued extends AggregateChanged
     public static function occured(LendingId $lendingId, float $amount): self
     {
         return self::occur($lendingId->toScalar(), [
-            'lendingId' => $lendingId->toScalar(),
             'amount' => $amount
         ]);
     }
@@ -25,7 +24,7 @@ final class FineAccrued extends AggregateChanged
     public function lendingId(): LendingId
     {
         if (null === $this->lendingId) {
-            $this->lendingId = new LendingId($this->payload['lendingId']);
+            $this->lendingId = new LendingId($this->aggregateId());
         }
 
         return $this->lendingId;
