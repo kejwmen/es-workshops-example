@@ -22,4 +22,3 @@ test:
 
 metrics:
 	$(COMPOSE_RUN_APP) bin/phpmetrics --report-html=report src --junit=coverage/logfile.xml
-
