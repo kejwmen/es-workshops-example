@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Tests\Library\Domain;
 
 use PHPUnit\Framework\TestCase;
+use Tests\Library\Domain\Helpers\TestAggregate;
 
 /**
  * @group unit
