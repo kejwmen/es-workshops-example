@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Library\Domain\Fine;
 
+use Assert\Assertion;
 use Library\Domain\AggregateRoot;
 use Library\Domain\LendingId;
 
@@ -14,32 +15,73 @@ class Fine extends AggregateRoot
     /** @var float */
     private $amount;
 
-    protected function __construct(LendingId $lendingId, float $amount)
+    protected function __construct()
     {
-        $this->recordThat(FineIssued::occured($lendingId, $amount));
+        $this->amount = 0.0;
     }
 
-    public static function create(LendingId $lendingId, float $amount): self
+    public static function issue(LendingId $lendingId, float $amount): self
     {
-        return new self($lendingId, $amount);
+        $s = new self();
+
+        $s->recordThat(FineIssued::occured($lendingId, $amount));
+
+        return $s;
     }
 
     public function pay(float $paidAmount): void
     {
+        $this->throwIfNotDue();
+
+        Assertion::true($paidAmount > 0, "Paid amount must be higher than 0");
+
+        $amountBefore = $this->amount;
+
         $this->recordThat(FinePaid::occured($this->lendingId, $paidAmount));
 
-        if ($paidAmount >= $this->amount) {
+        if ($paidAmount >= $amountBefore) {
             $this->recordThat(FineFullyPaid::occured($this->lendingId));
-
-            if ($paidAmount > $this->amount) {
-                $this->recordThat(FineOverpaid::occured($this->lendingId, $paidAmount - $this->amount));
-            }
         }
+
+        if ($paidAmount > $amountBefore) {
+            $this->recordThat(FineOverpaid::occured($this->lendingId, $paidAmount - $amountBefore));
+        }
+    }
+
+    public function accrue(float $amount): void
+    {
+        $this->throwIfNotDue();
+
+        $this->recordThat(FineAccrued::occured($this->lendingId, $amount));
     }
 
     public function cancel(): void
     {
+        $this->throwIfNotDue();
+
         $this->recordThat(FineCancelled::occured($this->lendingId));
+    }
+
+    public function lendingId(): LendingId
+    {
+        return $this->lendingId;
+    }
+
+    public function amount(): float
+    {
+        return $this->amount;
+    }
+
+    private function isDue(): bool
+    {
+        return $this->amount > 0;
+    }
+
+    private function throwIfNotDue(): void
+    {
+        if (!$this->isDue()) {
+            throw new FineAlreadyPaid($this->lendingId);
+        }
     }
 
     protected function aggregateId(): string
@@ -47,29 +89,34 @@ class Fine extends AggregateRoot
         return $this->lendingId->toScalar();
     }
 
-    private function onFineIssued(FineIssued $event): void
+    protected function onFineIssued(FineIssued $event): void
     {
-        $this->amount = $event->payload()['amount'];
-        $this->lendingId = $event->payload()['lendingId'];
+        $this->amount = $event->amount();
+        $this->lendingId = $event->lendingId();
     }
 
-    private function onFinePaid(FinePaid $event): void
+    protected function onFinePaid(FinePaid $event): void
     {
         $this->amount -= $event->amount();
     }
 
-    private function onFineFullyPaid(FineFullyPaid $event): void
+    protected function onFineFullyPaid(FineFullyPaid $event): void
     {
         $this->amount = 0;
     }
 
-    private function onFineOverpaid(FineOverpaid $event): void
+    protected function onFineOverpaid(FineOverpaid $event): void
     {
         $this->amount = 0;
     }
 
-    private function onFineCancelled(FineCancelled $event): void
+    protected function onFineCancelled(FineCancelled $event): void
     {
         $this->amount = 0;
+    }
+
+    protected function onFineAccrued(FineAccrued $event): void
+    {
+        $this->amount += $event->amount();
     }
 }

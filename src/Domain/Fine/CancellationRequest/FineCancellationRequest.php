@@ -16,14 +16,17 @@ final class FineCancellationRequest extends AggregateRoot
     /** @var FineCancellationRequestStatus */
     private $status;
 
-    protected function __construct(LendingId $lendingId)
-    {
-        $this->recordThat(FineCancellationRequestSubmitted::occured($lendingId));
-    }
+    /** @var string */
+    private $reason;
 
-    public static function create(LendingId $lendingId): self
+    protected function __construct() {}
+
+    public static function create(LendingId $lendingId, string $reason): self
     {
-        return new self($lendingId);
+        $s = new self();
+        $s->recordThat(FineCancellationRequestSubmitted::occured($lendingId, $reason));
+
+        return $s;
     }
 
     public function accept()
@@ -41,21 +44,22 @@ final class FineCancellationRequest extends AggregateRoot
         return $this->lendingId->toScalar();
     }
 
-    private function onFineCancellationRequestSubmitted(FineCancellationRequestSubmitted $event)
+    protected function onFineCancellationRequestSubmitted(FineCancellationRequestSubmitted $event)
     {
         $this->lendingId = $event->lendingId();
         $this->status = new SubmittedCancellationRequest();
+        $this->reason = $event->reason();
     }
 
-    private function onFineCancellationRequestAccepted(FineCancellationRequestSubmitted $event)
+    protected function onFineCancellationRequestAccepted(FineCancellationRequestAccepted $event)
     {
         $this->lendingId = $event->lendingId();
-        $this->status->accept();
+        $this->status = $this->status->accept();
     }
 
-    private function onFineCancellationRequestRejected(FineCancellationRequestSubmitted $event)
+    protected function onFineCancellationRequestRejected(FineCancellationRequestRejected $event)
     {
         $this->lendingId = $event->lendingId();
-        $this->status->reject();
+        $this->status = $this->status->reject();
     }
 }

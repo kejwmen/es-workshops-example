@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Library\Application\Fine\Command\RejectCancellationRequest;
+namespace Library\Application\Fine\CancellationRequest\Command\AcceptCancellationRequest;
 
 use Library\Domain\LendingId;
 
-final class RejectCancellationRequest
+final class AcceptCancellationRequest
 {
     /** @var LendingId */
     private $lendingId;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Library\Application\Fine\Command\RejectCancellationRequest;
+namespace Library\Application\Fine\CancellationRequest\Command\RejectCancellationRequest;
 
 use Library\Domain\Fine\CancellationRequest\FineCancellationRequests;
 
